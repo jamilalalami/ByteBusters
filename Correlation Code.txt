@@ -1,0 +1,30 @@
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+
+from google.colab import files
+uploaded = files.upload()
+
+#  Loading the CSV file into a DataFrame
+df = pd.read_csv("alldata.csv")
+
+#preprocess
+df = df.replace("_Z", float('nan'))
+
+# Handle missing data using the mean imputation strategy for numerical columns
+numerical_columns = df.select_dtypes(include=['float64', 'int64']).columns
+imputer = SimpleImputer(strategy='mean')
+df[numerical_columns] = imputer.fit_transform(df[numerical_columns])
+
+# One-hot encoding for categorical columns
+categorical_columns = df.select_dtypes(include=['object']).columns
+df = pd.get_dummies(df, columns=categorical_columns)
+
+pivot_table = df.pivot_table(index='Pollutant Type', columns='Reference area', values='OBS_VALUE')
+
+# Creating the heatmap
+plt.figure(figsize=(12, 8))
+sns.heatmap(pivot_table, annot=True, fmt=".1f", cmap="YlGnBu")
+plt.title("Correlation Between Pollutant Type and Observed Value")
+plt.show()
